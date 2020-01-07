@@ -1,0 +1,19 @@
+version: "2"
+services:
+  db:
+    image: "postgres"
+    container_name: "postgres_DB"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=1111
+      - POSTGRES_DB=prof
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      
+  gateway:
+    image: nginx
+    network_mode: "host"
+    volumes:
+      - ./gateway.nginx:/etc/nginx/conf.d/default.conf
