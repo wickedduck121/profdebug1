@@ -9,7 +9,7 @@ export function addStudent(pib, group, gender, code, date, address) {
 }
 
 export function deleteStudent(id_local) {
-    var url = '/api/students/';
+    var url = '/api/students/del/';
     return axios.delete(url+id_local);
 }
 

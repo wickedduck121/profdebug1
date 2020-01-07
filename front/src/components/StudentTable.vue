@@ -3,7 +3,7 @@
     <el-table
             :data="tableData"
             style="width: 100%"
-            max-height="250">
+            max-height="90%">
         <el-table-column
                 fixed
                 label="Чл. Проф."
@@ -147,8 +147,8 @@
             },
             deleteRow(index, rows, idLoc) {
                 deleteStudent(idLoc).then(res=>{
-                    alert(res.data);
                     if (res.data!=null) {rows.splice(index, 1);}
+                    else {alert("error");}
                 });
 
             },

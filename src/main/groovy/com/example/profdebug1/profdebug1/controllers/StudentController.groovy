@@ -69,9 +69,14 @@ class StudentController {
     }
 
     @DeleteMapping('/del/{id}')
-    delOne(@PathVariable('id') long idLoc){
-        Student studentLoc = repo.findById(idLoc) as Student
-        repo.delete(studentLoc)
+    delOne(@PathVariable('id') Long idLoc){
+        Student studLoc
+        Optional<Student> st = repo.findById(idLoc)
+        if (st.isPresent()){
+            studLoc = st.get()
+            repo.delete(studLoc)
+        }
+        null
     }
 
 
