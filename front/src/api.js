@@ -17,3 +17,8 @@ export function  login(name_loc,pass_loc) {
     axios.post('/api/login',{},{params:{username:name_loc,password:pass_loc}});
 
 }
+
+export function  getDoc() {
+    return axios.get('/api/students/doc');
+
+}

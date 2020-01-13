@@ -110,10 +110,19 @@
 </template>
 
 <script>
-    import { allStudents,  deleteStudent, addStudent } from '../api.js';
+    import { allStudents,  deleteStudent, addStudent, /*getDoc*/ } from '../api.js';
     export default {
         name: "StudentTable",
         mounted() {
+            /*getDoc().then(res=> res.data.forEach(el=>{
+                addStudent(
+                    el.name,
+                    "test",
+                    true,
+                    el.code,
+                    "0000-00-00 00:00:00",
+                    "test")
+            }));*/
             allStudents().then(res => res.data.forEach(el=>{
                 var dat = el.date.split("T");
                 const val = {

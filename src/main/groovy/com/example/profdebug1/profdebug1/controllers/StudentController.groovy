@@ -1,7 +1,9 @@
 package com.example.profdebug1.profdebug1.controllers
 
 import com.example.profdebug1.profdebug1.entities.Student
+import com.example.profdebug1.profdebug1.entities.StudentFromTable
 import com.example.profdebug1.profdebug1.repositories.StudentRepository
+import com.example.profdebug1.profdebug1.services.WordService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -77,6 +79,12 @@ class StudentController {
             repo.delete(studLoc)
         }
         null
+    }
+
+    @GetMapping('/doc')
+    ArrayList<StudentFromTable> getDoc(){
+        WordService wrd = new WordService()
+        wrd.wrd()
     }
 
 
