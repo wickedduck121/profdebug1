@@ -81,11 +81,11 @@ class StudentController {
         null
     }
 
-    @GetMapping('/doc')
+    /*@GetMapping('/doc')
     ArrayList<StudentFromTable> getDoc(){
         WordService wrd = new WordService()
         wrd.wrd()
-    }
+    }*/
 
 
 }

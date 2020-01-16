@@ -22,3 +22,24 @@ export function  getDoc() {
     return axios.get('/api/students/doc');
 
 }
+
+/*export function  sendDoc(file) {
+    var form = new FormData();
+    form.append("file", file);
+    console.log(file);
+    console.log(form);
+    //alert(file.content);
+    return axios.post('/api/files',{}, {params:{file:form}});
+
+}*/
+
+export function  sendDoc(file) {
+    var form = new FormData();
+    form.append("file", file);
+    console.log(file);
+    console.log(form);
+
+    //alert(file.content);
+    return axios.post('/api/files',{}, {params:{file: file}});
+
+}

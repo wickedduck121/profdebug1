@@ -129,7 +129,7 @@
                     idStud: el.idStud,
                     prof: el.prof,
                     pib:el.pib,
-                    group:el.group,
+                    group:el.groupE,
                     gender:el.gender,
                     code:el.code,
                     date: dat[0],
@@ -219,7 +219,7 @@
 
 <style scoped>
 #adding{
-    position: absolute;
+    position: fixed;
     width: 50vw;
     top: 40px;
     left: 25vw;

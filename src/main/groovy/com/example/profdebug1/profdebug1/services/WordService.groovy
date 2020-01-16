@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service
 @Service
 class WordService {
 
-    ArrayList<StudentFromTable> wrd() {
+    ArrayList<StudentFromTable> wrd(String path) {
         ArrayList<StudentFromTable> st = new ArrayList<>()
-        FileInputStream fileInputStream = new FileInputStream("/home/wickedduck/file.docx")
+        FileInputStream fileInputStream = new FileInputStream(path)
         XWPFDocument docxFile = new XWPFDocument(OPCPackage.open(fileInputStream))
         List<XWPFTable> tab = docxFile.getTables()
     log.info("got to while")

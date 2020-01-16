@@ -1,16 +1,19 @@
 <template>
   <div id="app">
     <student-table> </student-table>
+    <upload-file> </upload-file>
   </div>
 </template>
 
 <script>
 import StudentTable from "./components/StudentTable";
+import UploadFile from "./components/UploadFile";
 
 export default {
   name: 'app',
   components: {
-    StudentTable
+    StudentTable,
+    UploadFile
   }
 }
 </script>
