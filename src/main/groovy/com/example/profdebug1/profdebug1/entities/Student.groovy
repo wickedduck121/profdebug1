@@ -26,4 +26,5 @@ class Student {
     Date date
 
     String address
+    
 }

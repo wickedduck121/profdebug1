@@ -1,8 +1,12 @@
 <template>
     <div>
+        <el-collapse-transition>
+        <div v-show="showTable">
         <el-button @click="resetProfFilter">Удалить фильтр профкома</el-button>
         <el-button @click="clearFilter">Удалить все фильтры</el-button>
-    <el-table
+
+        <el-table
+
             ref="tab"
             :data="tableData.filter(
                 data => !search || data.pib.toLowerCase().includes(search.toLowerCase())
@@ -21,7 +25,8 @@
                         active-color="#F000D7"
                         inactive-color="#00A9F9"
                         active-text="Ж"
-                        inactive-text="М">
+                        inactive-text="М"
+                        @change="genderUpdate(props.row)">
                 </el-switch></p>
                 <p>Дата рождения: {{ props.row.date }}</p>
                 <p>Адрес: {{ props.row.address }}</p>
@@ -37,7 +42,7 @@
                 column-key="profCol"
                 width="100">
             <template slot-scope="scope">
-                <el-switch v-model="scope.row.prof"> </el-switch>
+                <el-switch v-model="scope.row.prof" @change="profUpdate(scope.row)"> </el-switch>
             </template>
 
         </el-table-column>
@@ -81,23 +86,25 @@
         </el-table-column>
 
     </el-table>
+            <el-button type="primary" @click="add()">Добавить</el-button>
+            <upload-file> </upload-file>
+        </div>
+        </el-collapse-transition>
 
-
-        <el-button type="primary" @click="add()">Добавить</el-button>
 
         <el-collapse-transition>
-        <div id="adding" v-show="show">
-        <el-form ref="form" :model="form" label-width="120px">
+        <div class="forms" v-show="showAdd">
+        <el-form ref="form" :model="formCreate" label-width="120px">
             <el-form-item label="ФИО">
-                <el-input v-model="form.pib"> </el-input>
+                <el-input v-model="formCreate.pib"> </el-input>
             </el-form-item>
             <el-form-item label="Группа">
-                    <el-input v-model="form.group"> </el-input>
+                    <el-input v-model="formCreate.group"> </el-input>
             </el-form-item>
             <el-form-item label="Пол">
                 <el-switch
                         style="display: block"
-                        v-model="form.gender"
+                        v-model="formCreate.gender"
                         active-color="#F000D7"
                         inactive-color="#00A9F9"
                         active-text="Женский"
@@ -105,41 +112,90 @@
                 </el-switch>
             </el-form-item>
             <el-form-item label="Идентификационный Код" label-width="200px">
-                <el-input v-model="form.code"> </el-input>
+                <el-input v-model="formCreate.code"> </el-input>
             </el-form-item>
             <el-form-item label="Дата рождения">
                 <el-col :span="11">
-                    <el-date-picker type="date" placeholder="Pick a date" v-model="form.date" style="width: 100%;"> </el-date-picker>
+                    <el-date-picker type="date" placeholder="Pick a date" v-model="formCreate.date" style="width: 100%;"> </el-date-picker>
                 </el-col>
             </el-form-item>
             <el-form-item label="Адрес">
-                <el-input v-model="form.address"> </el-input>
+                <el-input v-model="formCreate.address"> </el-input>
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="onSubmit()">Create</el-button>
-                <el-button @click="hide()">Cancel</el-button>
+                <el-button @click="hideCreate()">Cancel</el-button>
             </el-form-item>
         </el-form>
     </div>
         </el-collapse-transition>
+
+
+        <el-collapse-transition>
+            <div v-show="showUpdate" class="forms">
+            <el-form
+                    ref="form" :model="formUpdate"
+                    label-width="120px"
+                    size="mini"
+            >
+                <el-form-item label="ФИО">
+                    <el-input v-model="formUpdate.pib"> </el-input>
+                </el-form-item>
+                <el-form-item label="Группа">
+                    <el-input v-model="formUpdate.group"> </el-input>
+                </el-form-item>
+                <el-form-item label="Пол">
+                    <el-switch
+                            style="display: block"
+                            v-model="formUpdate.gender"
+                            active-color="#F000D7"
+                            inactive-color="#00A9F9"
+                            active-text="Женский"
+                            inactive-text="Мужской">
+                    </el-switch>
+                </el-form-item>
+                <el-form-item label="Идентификационный Код" label-width="200px">
+                    <el-input v-model="formUpdate.code"> </el-input>
+                </el-form-item>
+                <el-form-item label="Членство в профкоме" label-width="200px">
+                    <el-switch v-model="formUpdate.prof"> </el-switch>
+                </el-form-item>
+                <el-form-item label="Дата рождения">
+                    <el-col :span="11">
+                        <el-date-picker
+                                type="date"
+                                placeholder="Выберите дату"
+                                v-model="formUpdate.date"
+                                style="width: 100%;"
+                                @change="changeDate"
+                        > </el-date-picker>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="Адрес">
+                    <el-input v-model="formUpdate.address"> </el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmitUpdate()">Сохранить</el-button>
+                    <el-button @click="hideUpdate()">Отмена</el-button>
+                </el-form-item>
+            </el-form>
+
+            </div>
+        </el-collapse-transition>
     </div>
+
 
 </template>
 
 <script>
-    import { allStudents,  deleteStudent, addStudent, /*getDoc*/ } from '../api.js';
+    import { allStudents,  deleteStudent, addStudent, updateStud, updateGender, updateProf } from '../api.js';
+    import UploadFile from "./UploadFile";
     export default {
         name: "StudentTable",
+        components: {
+            UploadFile
+        },
         mounted() {
-            /*getDoc().then(res=> res.data.forEach(el=>{
-                addStudent(
-                    el.name,
-                    "test",
-                    true,
-                    el.code,
-                    "0000-00-00 00:00:00",
-                    "test")
-            }));*/
             allStudents().then(res => res.data.forEach(el=>{
                 var dat = el.date.split("T");
                 const val = {
@@ -155,21 +211,8 @@
                 this.tableData.push(val)}));
         },
         methods: {
-            updateTab(){
-                this.tableData = [];
-                allStudents().then(res => res.data.forEach(el=>{
-                    var dat = el.date.split("T");
-                    const val = {
-                        idStud: el.idStud,
-                        prof: el.prof,
-                        pib:el.pib,
-                        group:el.group,
-                        gender:el.gender,
-                        code:el.code,
-                        date: dat[0],
-                        address:el.address};
-
-                    this.tableData.push(val)}));
+            changeDate(){
+                console.log(this.formUpdate.date);
             },
             deleteRow(index, rows, idLoc) {
                 deleteStudent(idLoc).then(res=>{
@@ -184,41 +227,130 @@
                 });
 
             },
-            add(){
-                this.show=true;
+            genderUpdate(row){
+                updateGender(row.idStud, row.gender).then(res=>{
+                    if(res.data!=null){
+                        for( var i = 0; i < this.tableData.length; i++){
+                            if ( this.tableData[i].idStud === res.data.idStud) {
+                               this.tableData[i].gender = res.data.gender;
+                            }
+                        }
+                    }
+                    else {
+                        alert("error updating");
+                    }
+                })
             },
-            hide(){
-                    this.form.pib= '';
-                this.form.group= '';
-                this.form.gender=false;
-                this.form.code='';
-                this.form.date= '';
-                this.form.address='';
-                this.show=false;
+
+            profUpdate(row){
+                updateProf(row.idStud, row.prof).then(res=>{
+                    if(res.data!=null){
+                        for( var i = 0; i < this.tableData.length; i++){
+                            if ( this.tableData[i].idStud === res.data.idStud) {
+                                this.tableData[i].prof = res.data.prof;
+                            }
+                        }
+                    }
+                    else {
+                        alert("error updating");
+                    }
+                })
+            },
+
+            add(){
+                this.showTable=false;
+                this.showAdd=true;
+
+            },
+            hideCreate(){
+                    this.formCreate.pib= '';
+                this.formCreate.group= '';
+                this.formCreate.gender=false;
+                this.formCreate.code='';
+                this.formCreate.date= '';
+                this.formCreate.address='';
+                this.showAdd = false;
+                this.showTable = true;
+            },
+            hideUpdate(){
+                this.formUpdate.idStud= '';
+                this.formUpdate.pib= '';
+                this.formUpdate.group= '';
+                this.formUpdate.gender=false;
+                this.formUpdate.prof=false;
+                this.formUpdate.code='';
+                this.formUpdate.date= '';
+                this.formUpdate.address='';
+                this.showUpdate = false;
+                this.showTable = true;
             },
             onSubmit(){
                 addStudent(
-                    this.form.pib,
-                    this.form.group,
-                    this.form.gender,
-                    this.form.code,
-                    this.form.date,
-                    this.form.address).then(res=>{
+                    this.formCreate.pib,
+                    this.formCreate.group,
+                    this.formCreate.gender,
+                    this.formCreate.code,
+                    this.formCreate.date,
+                    this.formCreate.address).then(res=>{
                         if (res.data!=null){
-                            this.form.pib= '';
-                            this.form.group= '';
-                            this.form.gender=false;
-                            this.form.code='';
-                            this.form.date= '';
-                            this.form.address='';
-                            this.show=false;
-                            this.updateTab();
+                            this.formCreate.pib= '';
+                            this.formCreate.group= '';
+                            this.formCreate.gender=false;
+                            this.formCreate.code='';
+                            this.formCreate.date= '';
+                            this.formCreate.address='';
+                            this.showAdd = false;
+                            this.showTable = true;
+
+                            var dat = res.data.date.split("T");
+                            const val = {
+                                idStud: res.data.idStud,
+                                prof: res.data.prof,
+                                pib:res.data.pib,
+                                group:res.data.group,
+                                gender:res.data.gender,
+                                code:res.data.code,
+                                date: dat[0],
+                                address:res.data.address};
+
+                            this.tableData.push(val);
+
+                            //this.updateTab();
                         }
                         else{
                             alert("error!");
                         }
                 });
 
+            },
+            onSubmitUpdate(){
+                updateStud(this.formUpdate.idStud,
+                    this.formUpdate.prof,
+                    this.formUpdate.pib,
+                    this.formUpdate.group,
+                    this.formUpdate.gender,
+                    this.formUpdate.code,
+                    this.formUpdate.date,
+                    this.formUpdate.address).then(res=>{
+                        if (res.data!=null){
+                            this.hideUpdate();
+                            var dat = res.data.date.split("T");
+                            for( var i = 0; i < this.tableData.length; i++){
+                                if ( this.tableData[i].idStud === res.data.idStud) {
+                                    this.tableData[i].prof = res.data.prof;
+                                    this.tableData[i].pib = res.data.pib;
+                                    this.tableData[i].group = res.data.groupE;
+                                    this.tableData[i].gender = res.data.gender;
+                                    this.tableData[i].code = res.data.code;
+                                    this.tableData[i].date = dat;
+                                    this.tableData[i].address = res.data.address;
+                                }
+                            }
+                        }
+                        else {
+                            alert("error")
+                        }
+                })
             },
             filterProf(value, row){
                 return row.prof === value;
@@ -230,13 +362,24 @@
                 this.$refs.tab.clearFilter();
             },
             handleEdit(index, row) {
-                console.log(index, row);
+                this.formUpdate.idStud = row.idStud;
+                this.formUpdate.pib = row.pib;
+                this.formUpdate.group = row.group;
+                this.formUpdate.gender = row.gender;
+                this.formUpdate.prof = row.prof;
+                this.formUpdate.code = row.code;
+                this.formUpdate.date = row.date+"T00:00:00Z";
+                //console.log(this.formUpdate.date);
+                this.formUpdate.address = row.address;
+
+                this.showTable = false;
+                this.showUpdate = true;
             }
 
         },
         data() {
             return {
-                form: {
+                formCreate: {
                     pib: '',
                     group: '',
                     gender:false,
@@ -245,8 +388,20 @@
                    address:''
                 },
                 tableData: [],
-                show:false,
-                search: ''
+                showAdd:false,
+                showUpdate: false,
+                showTable: true,
+                search: '',
+                formUpdate: {
+                    idStud: '',
+                    pib: '',
+                    group: '',
+                    prof: false,
+                    gender:false,
+                    code:'',
+                    date: '',
+                    address:''
+                }
             }
         }
     }
@@ -254,14 +409,12 @@
 </script>
 
 <style scoped>
-#adding{
-    position: fixed;
-    width: 50vw;
-    top: 40px;
-    left: 25vw;
-    background-color: lightblue;
-    border: 1px solid blue;
-    border-radius: 8px;
-    /*background-color: black;*/
-}
+    .forms{
+        border: 1px solid;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+        position: fixed;
+        padding: 20px;
+        margin: 0 30vw
+    }
 </style>

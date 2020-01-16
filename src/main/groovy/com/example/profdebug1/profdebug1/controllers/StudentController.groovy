@@ -4,12 +4,15 @@ import com.example.profdebug1.profdebug1.entities.Student
 import com.example.profdebug1.profdebug1.entities.StudentFromTable
 import com.example.profdebug1.profdebug1.repositories.StudentRepository
 import com.example.profdebug1.profdebug1.services.WordService
+import com.fasterxml.jackson.databind.util.BeanUtil
 import groovy.util.logging.Slf4j
+import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -79,6 +82,54 @@ class StudentController {
             repo.delete(studLoc)
         }
         null
+    }
+
+    @PutMapping("/gender/{id}")
+    Student updtGender(@PathVariable('id') Long idLoc, @RequestBody Object genderLoc)
+    {
+        Boolean gender = genderLoc.genderLoc
+        Student stud = new Student()
+        Optional<Student> st = repo.findById(idLoc)
+        if(st.isPresent()){
+            stud = st.get()
+            stud.gender = gender
+        }
+        repo.save(stud)
+    }
+
+    @PutMapping("/prof/{id}")
+    Student updtProf(@PathVariable('id') Long idLoc, @RequestBody Object profLoc)
+    {
+        Boolean prof = profLoc.profLoc
+        Student stud = new Student()
+        Optional<Student> st = repo.findById(idLoc)
+        if(st.isPresent()){
+            stud = st.get()
+            stud.prof = prof
+        }
+        repo.save(stud)
+    }
+
+    @PutMapping("/{id}")
+    Student updateOne(@PathVariable('id') Long idLoc, @RequestBody Object studentLoc)
+    {
+        studentLoc.el.date= studentLoc.date.replaceAll("T"," ")
+        studentLoc.date = studentLoc.date.replaceAll("Z","")
+        def pattern = "yyyy-MM-dd hh:mm:ss"
+        Date dt = new SimpleDateFormat(pattern).parse(studentLoc.date)
+        Student stud = new Student()
+        Optional<Student> st = repo.findById(idLoc)
+        if(st.isPresent()){
+            stud = st.get()
+            stud.pib = studentLoc.pib
+            stud.groupE = studentLoc.groupE
+            stud.address = studentLoc.address
+            stud.code  = studentLoc.code
+            stud.gender = studentLoc.gender
+            stud.date = dt
+            stud.prof = studentLoc.prof
+        }
+        repo.save(stud)
     }
 
     /*@GetMapping('/doc')

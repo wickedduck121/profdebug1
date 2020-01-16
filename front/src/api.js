@@ -41,5 +41,23 @@ export function  sendDoc(file) {
 
     //alert(file.content);
     return axios.post('/api/files',{}, {params:{file: file}});
+}
 
+export function updateStud(idStud, prof, pib, groupE, gender, code, date, address) {
+    return axios.put('api/students/'+idStud,
+        {idStud: idStud,
+        prof: prof,
+        pib: pib,
+        groupE: groupE,
+        gender: gender,
+        code: code,
+        date: date,
+        address: address})
+}
+
+export function updateGender(idStud, genderLoc) {
+ return axios.put('api/students/gender/'+idStud, {genderLoc})
+}
+export function updateProf(idStud, profLoc) {
+    return axios.put('api/students/prof/'+idStud, {profLoc})
 }
