@@ -1,12 +1,40 @@
 <template>
     <div>
+        <el-button @click="resetProfFilter">Удалить фильтр профкома</el-button>
+        <el-button @click="clearFilter">Удалить все фильтры</el-button>
     <el-table
-            :data="tableData"
+            ref="tab"
+            :data="tableData.filter(
+                data => !search || data.pib.toLowerCase().includes(search.toLowerCase())
+                || data.code.toLowerCase().includes(search.toLowerCase())
+                || data.group.toLowerCase().includes(search.toLowerCase())
+                )"
             style="width: 100%"
-            max-height="90%">
+            :default-sort="{prop: 'group', order: 'descending'}"
+            lazy
+            max-height="500px">
+        <el-table-column type="expand">
+            <template slot-scope="props">
+                <p>Пол: <el-switch
+                        style="display: block"
+                        v-model="props.row.gender"
+                        active-color="#F000D7"
+                        inactive-color="#00A9F9"
+                        active-text="Ж"
+                        inactive-text="М">
+                </el-switch></p>
+                <p>Дата рождения: {{ props.row.date }}</p>
+                <p>Адрес: {{ props.row.address }}</p>
+            </template>
+        </el-table-column>
+
         <el-table-column
                 fixed
                 label="Чл. Проф."
+                :filters="[{ text: 'Да', value: true }, { text: 'Нет', value: false }]"
+                :filter-method="filterProf"
+                filter-placement="bottom-end"
+                column-key="profCol"
                 width="100">
             <template slot-scope="scope">
                 <el-switch v-model="scope.row.prof"> </el-switch>
@@ -16,56 +44,45 @@
         <el-table-column
                 prop="pib"
                 label="ФИО"
+                sortable
                 width="250">
         </el-table-column>
         <el-table-column
                 prop="group"
                 label="Группа"
+                sortable
                 width="120">
-        </el-table-column>
-        <el-table-column
-                label="Пол"
-                width="120">
-            <template slot-scope="scope">
-            <el-switch
-                    style="display: block"
-                    v-model="scope.row.gender"
-                    active-color="#F000D7"
-                    inactive-color="#00A9F9"
-                    active-text="Ж"
-                    inactive-text="М">
-            </el-switch>
-            </template>
         </el-table-column>
         <el-table-column
                 prop="code"
                 label="Идент. код"
                 width="120">
         </el-table-column>
+
+
         <el-table-column
-                prop="date"
-                label="Дата рождения"
-                width="150">
-        </el-table-column>
-        <el-table-column
-                prop="address"
-                label="Адресс"
-                width="300">
-        </el-table-column>
-        <el-table-column
-                fixed="right"
-                label="Operations"
-                width="120">
+                align="right">
+            <template slot="header" slot-scope="scope">
+                <el-input
+                        @click="handleEdit(scope.$index, scope.row)"
+                        v-model="search"
+                        size="mini"
+                        placeholder="Type to search"/>
+            </template>
             <template slot-scope="scope">
                 <el-button
-                        @click.native.prevent="deleteRow(scope.$index, tableData, scope.row.idStud)"
-                        type="text"
-                        size="small">
-                    Remove
-                </el-button>
+                        size="mini"
+                        @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
+                <el-button
+                        size="mini"
+                        type="danger"
+                        @click.native.prevent="deleteRow(scope.$index, tableData, scope.row.idStud)">Delete</el-button>
             </template>
         </el-table-column>
+
     </el-table>
+
+
         <el-button type="primary" @click="add()">Добавить</el-button>
 
         <el-collapse-transition>
@@ -156,7 +173,13 @@
             },
             deleteRow(index, rows, idLoc) {
                 deleteStudent(idLoc).then(res=>{
-                    if (res.data!=null) {rows.splice(index, 1);}
+                    if (res.data!=null) {
+                        for( var i = 0; i < rows.length; i++){
+                            if ( rows[i].idStud === idLoc) {
+                                rows.splice(i, 1);
+                            }
+                        }
+                    }
                     else {alert("error");}
                 });
 
@@ -196,6 +219,18 @@
                         }
                 });
 
+            },
+            filterProf(value, row){
+                return row.prof === value;
+            },
+            resetProfFilter(){
+                this.$refs.tab.clearFilter('profCol');
+            },
+            clearFilter() {
+                this.$refs.tab.clearFilter();
+            },
+            handleEdit(index, row) {
+                console.log(index, row);
             }
 
         },
@@ -210,7 +245,8 @@
                    address:''
                 },
                 tableData: [],
-                show:false
+                show:false,
+                search: ''
             }
         }
     }
