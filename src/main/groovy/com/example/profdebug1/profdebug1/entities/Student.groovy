@@ -4,6 +4,7 @@ import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
+import javax.persistence.ManyToOne
 import javax.persistence.Table
 
 @Entity
@@ -26,5 +27,10 @@ class Student {
     Date date
 
     String address
-    
+
+    String trainingForm
+
+    @ManyToOne
+    Faculty faculty
+
 }

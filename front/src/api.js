@@ -4,8 +4,17 @@ export function allStudents() {
     return axios.get('/api/students');
 }
 
-export function addStudent(pib, group, gender, code, date, address) {
-    return axios.post('/api/students',{ pib:pib, groupE: group, gender:gender, code:code, date:date, address:address, prof:false })
+export function addStudent(pib, group, gender, code, date, address, trainingForm,facId) {
+    console.log("facId "+facId);
+    return axios.post('/api/students',{
+        pib:pib,
+        groupE: group,
+        gender:gender,
+        code:code,
+        date:date, address:address,
+        prof:false,
+        trainingForm: trainingForm,
+        facId: facId})
 }
 
 export function deleteStudent(id_local) {
@@ -43,7 +52,8 @@ export function  sendDoc(file) {
     return axios.post('/api/files',{}, {params:{file: file}});
 }
 
-export function updateStud(idStud, prof, pib, groupE, gender, code, date, address) {
+export function updateStud(idStud, prof, pib, groupE, gender, code, date, address, trainingForm,facId) {
+    console.log({idStud,prof,pib,groupE,gender,code,date,address,trainingForm,facId});
     return axios.put('api/students/'+idStud,
         {idStud: idStud,
         prof: prof,
@@ -52,7 +62,9 @@ export function updateStud(idStud, prof, pib, groupE, gender, code, date, addres
         gender: gender,
         code: code,
         date: date,
-        address: address})
+        address: address,
+            trainingForm: trainingForm,
+        facId: facId})
 }
 
 export function updateGender(idStud, genderLoc) {
@@ -60,4 +72,17 @@ export function updateGender(idStud, genderLoc) {
 }
 export function updateProf(idStud, profLoc) {
     return axios.put('api/students/prof/'+idStud, {profLoc})
+}
+
+export function addFaculty(facName, abbreviation) {
+    return axios.post('api/faculty',{facName,abbreviation})
+}
+export function delFaculty(idFac) {
+    return axios.delete('api/faculty/'+idFac)
+}
+export function updateFaculty(facId, facName, abbreviation) {
+    return axios.put('api/faculty', {facId, facName, abbreviation})
+}
+export  function getAllFaculty() {
+    return axios.get('api/faculty')
 }

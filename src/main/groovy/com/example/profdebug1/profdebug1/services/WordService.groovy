@@ -24,8 +24,9 @@ class WordService {
             XWPFTableRow row = tab[0].getRow(i)
             List<XWPFTableCell> cells = row.tableCells
             String nameLoc = cells[0].text
-            String codeLoc = cells[1].text
-            StudentFromTable stLoc = new StudentFromTable(nameLoc, codeLoc)
+            String formTeachLoc = cells[1].text
+            String codeLoc = cells[2].text
+            StudentFromTable stLoc = new StudentFromTable(nameLoc, formTeachLoc, codeLoc)
             st.push(stLoc)
         }
         log.info("got from while")

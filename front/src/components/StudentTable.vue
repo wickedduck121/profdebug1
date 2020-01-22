@@ -6,7 +6,6 @@
         <el-button @click="clearFilter">Удалить все фильтры</el-button>
 
         <el-table
-
             ref="tab"
             :data="tableData.filter(
                 data => !search || data.pib.toLowerCase().includes(search.toLowerCase())
@@ -15,6 +14,7 @@
                 )"
             style="width: 100%"
             :default-sort="{prop: 'group', order: 'descending'}"
+            :row-class-name="tableRowClassName"
             lazy
             max-height="500px">
         <el-table-column type="expand">
@@ -64,6 +64,29 @@
                 width="120">
         </el-table-column>
 
+            <el-table-column
+                    v-for="item in facultyData"
+                    :key="item.facId"
+                    :filters="[{ text: item.abbreviation, value: item.facId }]"
+                    :filter-method="filterFac"
+                prop="faculty.abbreviation"
+                label="Факультет"
+                width="120">
+            </el-table-column>
+
+            <el-table-column
+                    prop="tag"
+                    label="Tag"
+                    width="100"
+                    :filters="[{ text: 'бюджет', value: 'бюджет' }, { text: 'контракт', value: 'контракт' }]"
+                    :filter-method="filterTag"
+                    filter-placement="bottom-end">
+                <template slot-scope="scopeTag">
+                    <el-tag
+                            :type="scopeTag.row.tag"
+                            disable-transitions>{{scopeTag.row.trainingForm}}</el-tag>
+                </template>
+            </el-table-column>
 
         <el-table-column
                 align="right">
@@ -77,17 +100,18 @@
             <template slot-scope="scope">
                 <el-button
                         size="mini"
-                        @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
+                        @click="handleEdit(scope.$index, scope.row)">Редактировать</el-button>
                 <el-button
                         size="mini"
                         type="danger"
-                        @click.native.prevent="deleteRow(scope.$index, tableData, scope.row.idStud)">Delete</el-button>
+                        @click.native.prevent="deleteRow(scope.$index, tableData, scope.row.idStud)">Удалить</el-button>
             </template>
         </el-table-column>
 
     </el-table>
             <el-button type="primary" @click="add()">Добавить</el-button>
-            <upload-file> </upload-file>
+            <upload-file :faculty-data="facultyData"> </upload-file>
+            <el-button @click="showFunc()">Список факультетов</el-button>
         </div>
         </el-collapse-transition>
 
@@ -114,6 +138,22 @@
             <el-form-item label="Идентификационный Код" label-width="200px">
                 <el-input v-model="formCreate.code"> </el-input>
             </el-form-item>
+            <el-form-item label="Форма обучения">
+                <el-radio-group v-model="formCreate.trainingForm">
+                    <el-radio label="контракт"> </el-radio>
+                    <el-radio label="бюджет"> </el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="Факультет">
+                <el-select v-model="formCreate.faculty" placeholder="Select">
+                    <el-option
+                            v-for="item in facultyData"
+                            :key="item.facId"
+                            :label="item.abbreviation"
+                            :value="item">
+                    </el-option>
+                </el-select>
+            </el-form-item>
             <el-form-item label="Дата рождения">
                 <el-col :span="11">
                     <el-date-picker type="date" placeholder="Pick a date" v-model="formCreate.date" style="width: 100%;"> </el-date-picker>
@@ -123,8 +163,8 @@
                 <el-input v-model="formCreate.address"> </el-input>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="onSubmit()">Create</el-button>
-                <el-button @click="hideCreate()">Cancel</el-button>
+                <el-button type="primary" @click="onSubmit()">Сохранить</el-button>
+                <el-button @click="hideCreate()">Отмена</el-button>
             </el-form-item>
         </el-form>
     </div>
@@ -159,6 +199,22 @@
                 </el-form-item>
                 <el-form-item label="Членство в профкоме" label-width="200px">
                     <el-switch v-model="formUpdate.prof"> </el-switch>
+                </el-form-item>
+                <el-form-item label="Форма обучения">
+                    <el-radio-group v-model="formUpdate.trainingForm">
+                        <el-radio label="контракт"> </el-radio>
+                        <el-radio label="бюджет"> </el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="Факультет">
+                    <el-select v-model="formUpdate.faculty" placeholder="Select">
+                        <el-option
+                                v-for="item in facultyData"
+                                :key="item.facId"
+                                :label="item.abbreviation"
+                                :value="item.facId">
+                        </el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="Дата рождения">
                     <el-col :span="11">
@@ -195,6 +251,10 @@
         components: {
             UploadFile
         },
+        props:{
+          facultyData:[],
+            showFunc: {type: Function}
+        },
         mounted() {
             allStudents().then(res => res.data.forEach(el=>{
                 var dat = el.date.split("T");
@@ -206,11 +266,49 @@
                     gender:el.gender,
                     code:el.code,
                     date: dat[0],
-                    address:el.address};
-
+                    address:el.address,
+                    trainingForm: el.trainingForm,
+                    faculty: el.faculty,
+                    tag: 'danger'};
+                if ( val.trainingForm === null) {
+                    val.trainingForm = 'помилка'
+                }
+                if(val.trainingForm === 'бюджет'){
+                    val.tag = 'success'
+                }
+                if(val.trainingForm === 'контракт'){
+                    val.tag = ''
+                }
                 this.tableData.push(val)}));
+            console.log(this.tableData);
         },
         methods: {
+            tableRowClassName({row, rowIndex}){
+                if(row.code.length!==10){
+                    return 'warning-row';
+                }
+                for(var i1=0;i<row.code.length;i1++){
+                    if(row.code[i]<'0' || row.code[i]>'9'){
+                        return 'warning-row';
+                    }
+                }
+                for(var i2=0;i2<row.pib.length;i2++){
+                    if(row.code[i].toLowerCase()<'а' || row.code[i].toLowerCase()>'я'){
+                        return 'warning-row';
+                    }
+                }
+                if (rowIndex === 1) {
+                    return 'warning-row';
+                } else if (rowIndex === 3) {
+                    return 'success-row';
+                }
+                return '';
+
+            },
+            filterTag(value, row) {
+                return row.trainingForm === value;
+            },
+
             changeDate(){
                 console.log(this.formUpdate.date);
             },
@@ -220,6 +318,10 @@
                         for( var i = 0; i < rows.length; i++){
                             if ( rows[i].idStud === idLoc) {
                                 rows.splice(i, 1);
+                                this.$message({
+                                    message: 'Успешно удалено',
+                                    type: 'success'
+                                });
                             }
                         }
                     }
@@ -237,7 +339,7 @@
                         }
                     }
                     else {
-                        alert("error updating");
+                        this.$message.error('Ошибка при редактировании');
                     }
                 })
             },
@@ -250,37 +352,54 @@
                                 this.tableData[i].prof = res.data.prof;
                             }
                         }
+
                     }
                     else {
-                        alert("error updating");
+                        this.$message.error('Ошибка при редактировании');
                     }
                 })
             },
 
             add(){
-                this.showTable=false;
-                this.showAdd=true;
-
+                if(this.facultyData.length!==0){
+                    this.formCreate.faculty.facId = this.facultyData[0].facId;
+                    this.formCreate.faculty.facName = this.facultyData[0].facName;
+                    this.formCreate.faculty.abbreviation = this.facultyData[0].abbreviation;
+                    this.showTable=false;
+                    this.showAdd=true;
+                }
+                else{
+                    this.$message.error('Нету данных факультетов');
+                    this.showFunc();
+                }
             },
             hideCreate(){
-                    this.formCreate.pib= '';
-                this.formCreate.group= '';
-                this.formCreate.gender=false;
-                this.formCreate.code='';
-                this.formCreate.date= '';
-                this.formCreate.address='';
+                    this.formCreate.pib = '';
+                this.formCreate.group = '';
+                this.formCreate.gender = false;
+                this.formCreate.code = '';
+                this.formCreate.date = '';
+                this.formCreate.address = '';
+                this.formCreate.trainingForm = '';
+                this.formCreate.faculty.facId = this.facultyData[0].facId;
+                this.formCreate.faculty.facName = this.facultyData[0].facName;
+                this.formCreate.faculty.abbreviation = this.facultyData[0].abbreviation;
                 this.showAdd = false;
                 this.showTable = true;
             },
             hideUpdate(){
-                this.formUpdate.idStud= '';
-                this.formUpdate.pib= '';
-                this.formUpdate.group= '';
-                this.formUpdate.gender=false;
-                this.formUpdate.prof=false;
-                this.formUpdate.code='';
-                this.formUpdate.date= '';
-                this.formUpdate.address='';
+                this.formUpdate.idStud = '';
+                this.formUpdate.pib = '';
+                this.formUpdate.group = '';
+                this.formUpdate.gender = false;
+                this.formUpdate.prof = false;
+                this.formUpdate.code ='';
+                this.formUpdate.date = '';
+                this.formUpdate.address = '';
+                this.formUpdate.trainingForm = '';
+                this.formUpdate.faculty.facId = this.facultyData[0].facId;
+                this.formUpdate.faculty.facName = this.facultyData[0].facName;
+                this.formUpdate.faculty.abbreviation = this.facultyData[0].abbreviation;
                 this.showUpdate = false;
                 this.showTable = true;
             },
@@ -291,7 +410,9 @@
                     this.formCreate.gender,
                     this.formCreate.code,
                     this.formCreate.date,
-                    this.formCreate.address).then(res=>{
+                    this.formCreate.address,
+                    this.formCreate.trainingForm,
+                    this.formCreate.faculty.facId).then(res=>{
                         if (res.data!=null){
                             this.formCreate.pib= '';
                             this.formCreate.group= '';
@@ -299,22 +420,31 @@
                             this.formCreate.code='';
                             this.formCreate.date= '';
                             this.formCreate.address='';
+                            this.formCreate.trainingForm = '';
+                            this.formCreate.faculty.facId = this.facultyData[0].facId;
+                            this.formCreate.faculty.facName = this.facultyData[0].facName;
+                            this.formCreate.faculty.abbreviation = this.facultyData[0].abbreviation;
                             this.showAdd = false;
                             this.showTable = true;
-
+                            console.log(res.data.faculty);
                             var dat = res.data.date.split("T");
                             const val = {
                                 idStud: res.data.idStud,
                                 prof: res.data.prof,
                                 pib:res.data.pib,
-                                group:res.data.group,
+                                group:res.data.groupE,
                                 gender:res.data.gender,
                                 code:res.data.code,
                                 date: dat[0],
-                                address:res.data.address};
+                                address:res.data.address,
+                                trainingForm: res.data.trainingForm,
+                                faculty:res.data.faculty};
 
                             this.tableData.push(val);
-
+                            this.$message({
+                                message: 'Успешно добавлено',
+                                type: 'success'
+                            });
                             //this.updateTab();
                         }
                         else{
@@ -331,7 +461,9 @@
                     this.formUpdate.gender,
                     this.formUpdate.code,
                     this.formUpdate.date,
-                    this.formUpdate.address).then(res=>{
+                    this.formUpdate.address,
+                    this.formUpdate.trainingForm,
+                    this.formUpdate.faculty.facId).then(res=>{
                         if (res.data!=null){
                             this.hideUpdate();
                             var dat = res.data.date.split("T");
@@ -344,16 +476,28 @@
                                     this.tableData[i].code = res.data.code;
                                     this.tableData[i].date = dat;
                                     this.tableData[i].address = res.data.address;
+                                    this.tableData[i].trainingForm = res.data.trainingForm;
+                                    this.tableData[i].faculty = res.data.faculty;
                                 }
                             }
+                            this.$message({
+                                message: 'Успешно изменено',
+                                type: 'success'
+                            });
                         }
                         else {
-                            alert("error")
+                            this.$message.error('Ошибка при добавлении');
                         }
                 })
             },
             filterProf(value, row){
                 return row.prof === value;
+            },
+            filterFac(value, row){
+                console.log(row);
+                console.log(value);
+                if (row.faculty===null) return false;
+                return row.faculty.facId === value;
             },
             resetProfFilter(){
                 this.$refs.tab.clearFilter('profCol');
@@ -362,18 +506,35 @@
                 this.$refs.tab.clearFilter();
             },
             handleEdit(index, row) {
-                this.formUpdate.idStud = row.idStud;
-                this.formUpdate.pib = row.pib;
-                this.formUpdate.group = row.group;
-                this.formUpdate.gender = row.gender;
-                this.formUpdate.prof = row.prof;
-                this.formUpdate.code = row.code;
-                this.formUpdate.date = row.date+"T00:00:00Z";
-                //console.log(this.formUpdate.date);
-                this.formUpdate.address = row.address;
+                if(this.facultyData.length!==0) {
+                    this.formUpdate.idStud = row.idStud;
+                    this.formUpdate.pib = row.pib;
+                    this.formUpdate.group = row.group;
+                    this.formUpdate.gender = row.gender;
+                    this.formUpdate.prof = row.prof;
+                    this.formUpdate.code = row.code;
+                    this.formUpdate.date = row.date + "T00:00:00Z";
+                    //console.log(this.formUpdate.date);
+                    this.formUpdate.address = row.address;
+                    if (row.faculty != null) {
+                        this.formUpdate.faculty.facId = row.faculty.facId;
+                        this.formUpdate.faculty.facName = row.faculty.facName;
+                        this.formUpdate.faculty.abbreviation = row.faculty.abbreviation;
+                    }
+                    else {
+                        this.formUpdate.faculty.facId = this.facultyData[0].facId;
+                        this.formUpdate.faculty.facName = this.facultyData[0].facName;
+                        this.formUpdate.faculty.abbreviation = this.facultyData[0].abbreviation;
+                    }
+                    this.formUpdate.trainingForm = row.trainingForm;
 
-                this.showTable = false;
-                this.showUpdate = true;
+                    this.showTable = false;
+                    this.showUpdate = true;
+                }
+                else{
+                    this.$message.error('Нету данных факультетов');
+                    this.showFunc();
+                }
             }
 
         },
@@ -385,7 +546,13 @@
                     gender:false,
                     code:'',
                     date: '',
-                   address:''
+                   address:'',
+                    trainingForm: '',
+                    faculty:{
+                        facId: '',
+                        facName: '',
+                        abbreviation: ''
+                    }
                 },
                 tableData: [],
                 showAdd:false,
@@ -400,7 +567,13 @@
                     gender:false,
                     code:'',
                     date: '',
-                    address:''
+                    address:'',
+                    trainingForm: '',
+                    faculty:{
+                        facId: '',
+                        facName: '',
+                        abbreviation: ''
+                    }
                 }
             }
         }
@@ -415,6 +588,14 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
         position: fixed;
         padding: 20px;
-        margin: 0 30vw
+        margin: 0 30vw;
+        top:5px;
+    }
+    .el-table .warning-row {
+        background: oldlace;
+    }
+
+    .el-table .success-row {
+        background: #f0f9eb;
     }
 </style>

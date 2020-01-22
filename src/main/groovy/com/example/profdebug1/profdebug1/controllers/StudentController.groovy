@@ -1,7 +1,9 @@
 package com.example.profdebug1.profdebug1.controllers
 
+import com.example.profdebug1.profdebug1.entities.Faculty
 import com.example.profdebug1.profdebug1.entities.Student
 import com.example.profdebug1.profdebug1.entities.StudentFromTable
+import com.example.profdebug1.profdebug1.repositories.FacultyRepository
 import com.example.profdebug1.profdebug1.repositories.StudentRepository
 import com.example.profdebug1.profdebug1.services.WordService
 import com.fasterxml.jackson.databind.util.BeanUtil
@@ -25,10 +27,12 @@ import java.text.SimpleDateFormat
 class StudentController {
 
     private final StudentRepository repo
+    private final FacultyRepository facRepo
 
     @Autowired
-    StudentController(StudentRepository repoLocal){
+    StudentController(StudentRepository repoLocal, FacultyRepository facRepoLoc){
         repo=repoLocal
+        facRepo = facRepoLoc
     }
 
     @PostMapping
@@ -47,8 +51,14 @@ class StudentController {
         stud.gender = studentLoc.gender
         stud.idStud = studentLoc.idStud
         stud.date = dt
+        stud.trainingForm = studentLoc.trainingForm
         stud.prof = studentLoc.prof
-
+        Faculty fac = new Faculty()
+        Optional<Faculty> facTemp = facRepo.findById(Long.parseLong(studentLoc.facId.toString()))
+        if(facTemp.isPresent()){
+            fac = facTemp.get()
+        }
+        stud.faculty = fac
         repo.save(stud)
     }
 
@@ -113,7 +123,8 @@ class StudentController {
     @PutMapping("/{id}")
     Student updateOne(@PathVariable('id') Long idLoc, @RequestBody Object studentLoc)
     {
-        studentLoc.el.date= studentLoc.date.replaceAll("T"," ")
+       // log.info(studentLoc.toString())
+        studentLoc.date= studentLoc.date.replaceAll("T"," ")
         studentLoc.date = studentLoc.date.replaceAll("Z","")
         def pattern = "yyyy-MM-dd hh:mm:ss"
         Date dt = new SimpleDateFormat(pattern).parse(studentLoc.date)
@@ -128,6 +139,13 @@ class StudentController {
             stud.gender = studentLoc.gender
             stud.date = dt
             stud.prof = studentLoc.prof
+            stud.trainingForm = studentLoc.trainingForm
+            Optional<Faculty> facTemp = facRepo.findById(Long.parseLong(studentLoc.facId.toString()))
+            Faculty fac = new Faculty()
+            if(facTemp.isPresent()){
+                fac = facTemp.get()
+            }
+            stud.faculty = fac
         }
         repo.save(stud)
     }
