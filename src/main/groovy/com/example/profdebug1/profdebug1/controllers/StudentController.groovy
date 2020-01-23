@@ -7,6 +7,7 @@ import com.example.profdebug1.profdebug1.repositories.FacultyRepository
 import com.example.profdebug1.profdebug1.repositories.StudentRepository
 import com.example.profdebug1.profdebug1.services.WordService
 import com.fasterxml.jackson.databind.util.BeanUtil
+import groovy.time.TimeCategory
 import groovy.util.logging.Slf4j
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,12 +38,21 @@ class StudentController {
 
     @PostMapping
     Student saveOne(@RequestBody Object studentLoc){
-        log.info("HELLO!")
-        log.info(studentLoc.date)
-        studentLoc.date= studentLoc.date.replaceAll("T"," ")
-        studentLoc.date = studentLoc.date.replaceAll("Z","")
-        def pattern = "yyyy-MM-dd hh:mm:ss"
-        Date dt = new SimpleDateFormat(pattern).parse(studentLoc.date)
+       // log.info("HELLO!")
+       // log.info(studentLoc.date)
+        Date dt
+        if (studentLoc.date!=null) {
+            studentLoc.date = studentLoc.date.replaceAll("T", " ")
+            studentLoc.date = studentLoc.date.replaceAll("Z", "")
+            def pattern = "yyyy-MM-dd hh:mm:ss"
+            dt = new SimpleDateFormat(pattern).parse(studentLoc.date)
+            use(TimeCategory){
+                dt = dt+1.day
+            }
+        }
+        else{
+            dt = null
+        }
         Student stud = new Student()
         stud.pib = studentLoc.pib
         stud.groupE = studentLoc.groupE
@@ -123,11 +133,22 @@ class StudentController {
     @PutMapping("/{id}")
     Student updateOne(@PathVariable('id') Long idLoc, @RequestBody Object studentLoc)
     {
+        Date dt = null
+        if (studentLoc.date!=null) {
+            studentLoc.date= studentLoc.date.replaceAll("T"," ")
+            studentLoc.date = studentLoc.date.replaceAll("Z","")
+            def pattern = "yyyy-MM-dd hh:mm:ss"
+            dt = new SimpleDateFormat(pattern).parse(studentLoc.date)
+            use(TimeCategory){
+                dt = dt+1.day
+            }
+
+        }
+        else{
+            dt = null
+        }
        // log.info(studentLoc.toString())
-        studentLoc.date= studentLoc.date.replaceAll("T"," ")
-        studentLoc.date = studentLoc.date.replaceAll("Z","")
-        def pattern = "yyyy-MM-dd hh:mm:ss"
-        Date dt = new SimpleDateFormat(pattern).parse(studentLoc.date)
+
         Student stud = new Student()
         Optional<Student> st = repo.findById(idLoc)
         if(st.isPresent()){
