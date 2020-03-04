@@ -3,10 +3,10 @@
 
 
         <el-collapse-transition>
-            <div v-show="showFaculty">
+            <div v-show="showFaculty"  :class="isCollapse">
                 <el-table
                         ref="tab"
-                        style="width: 100%"
+
                         :data="facultyData"
                         :default-sort="{prop: 'facName', order: 'descending'}"
                         lazy
@@ -42,8 +42,10 @@
                     </el-table-column>
 
                 </el-table>
+                <div>
                 <el-button type="primary" @click="dialogAdd = true">Добавить</el-button>
                 <el-button type="primary" @click="hideFaculty()">Вернуться</el-button>
+                </div>
             </div>
         </el-collapse-transition>
 
@@ -107,6 +109,7 @@
                         :facultyData="facultyData"
                         :show-func="showFacTable"
                         :fac-filter="propFilter"
+                        :is-collapse="isCollapse"
                 />
             </div>
         </el-collapse-transition>
@@ -121,6 +124,9 @@
         name: "FacultyTable",
         components:{
             StudentTable
+        },
+        props:{
+          isCollapse: {}
         },
         data(){
             return{
@@ -377,6 +383,38 @@
 </script>
 
 <style scoped>
+    .floatRight{
+        width: 85%;
+        float: right;
+    }
+    .floatRightCollapsed{
+        animation-name: collap;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        float: right;
+    }
+    .floatRightNotCollapsed{
+        animation-name: uncollap;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        float: right;
+    }
+    @keyframes collap {
+        from{
+            width: 84%;
+        }
+        to{
+            width: 95%;
+        }
+    }
+    @keyframes uncollap {
+        from{
+            width: 95%;
+        }
+        to{
+            width: 84%;
+        }
+    }
     .forms{
         border: 1px solid;
         border-radius: 4px;

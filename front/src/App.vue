@@ -1,16 +1,16 @@
 <template>
   <div id="app">
-    <faculty-table/>
+    <navigation/>
   </div>
 </template>
 
 <script>
-import FacultyTable from "./components/FacultyTable";
+import Navigation from "./components/Navigation";
 
 export default {
   name: 'app',
   components: {
-    FacultyTable
+    Navigation
   }
 }
 </script>

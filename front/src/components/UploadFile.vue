@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <br>Выберите факультет для файлов
+        <br><div>Выберите факультет для файлов</div>
         <el-select v-model="value" placeholder="Select" @change="selChange">
             <el-option
                     v-for="item in facultyData"
@@ -67,5 +67,8 @@
 </script>
 
 <style scoped>
-
+    .floatRight{
+        width: 85%;
+        float: right;
+    }
 </style>

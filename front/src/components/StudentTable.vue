@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-collapse-transition>
-        <div v-show="showTable">
+        <div v-show="showTable" :class="isCollapse">
         <el-button @click="resetProfFilter">Удалить фильтр профкома</el-button>
         <el-button @click="clearFilter">Удалить все фильтры</el-button>
 
@@ -12,7 +12,7 @@
                 || data.code.toLowerCase().includes(search.toLowerCase())
                 || data.group.toLowerCase().includes(search.toLowerCase())
                 )"
-            style="width: 100%"
+
             :default-sort="{prop: 'group', order: 'descending'}"
             :row-class-name="tableRowClassName"
             lazy
@@ -108,9 +108,12 @@
         </el-table-column>
 
     </el-table>
+            <div>
             <el-button type="primary" @click="add()">Добавить</el-button>
+            <el-button type="primary" @click="reportCreate()">Отчёт</el-button>
+            </div>
             <upload-file :faculty-data="facultyData"> </upload-file>
-            <el-button @click="showFunc()">Список факультетов</el-button>
+            <div><el-button @click="showFunc()">Список факультетов</el-button></div>
         </div>
         </el-collapse-transition>
 
@@ -261,7 +264,13 @@
 </template>
 
 <script>
-    import { allStudents,  deleteStudent, addStudent, updateStud, updateGender, updateProf } from '../api.js';
+    import { allStudents,
+        deleteStudent,
+        addStudent,
+        updateStud,
+        updateGender,
+        updateProf,
+        getReportStudent} from '../api.js';
     import UploadFile from "./UploadFile";
     export default {
         name: "StudentTable",
@@ -271,9 +280,11 @@
         props:{
           facultyData:[],
             showFunc: {type: Function},
-            facFilter:[]
+            facFilter:[],
+            isCollapse: {}
         },
         mounted() {
+           // alert(this.isCollapse);
             allStudents().then(res => res.data.forEach(el=>{
                 var dat = [''];
                 if(el.date!==null){dat = el.date.split("T");}
@@ -302,6 +313,9 @@
             //console.log(this.tableData);
         },
         methods: {
+            reportCreate(){
+              getReportStudent().then(res=>alert(res.data));
+            },
             updateCheck(){
                 if(this.formUpdate.code.length!==10){
                     return 'Идент. код должен состоять из 10 цифр';
@@ -702,5 +716,33 @@
 
     .el-table .success-row {
         background: #f0f9eb;
+    }
+    .floatRightCollapsed{
+        animation-name: collap;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        float: right;
+    }
+    .floatRightNotCollapsed{
+        animation-name: uncollap;
+        animation-duration: 0.5s;
+        animation-timing-function: linear;
+        float: right;
+    }
+    @keyframes collap {
+        from{
+            width: 84%;
+        }
+        to{
+            width: 95%;
+        }
+    }
+    @keyframes uncollap {
+        from{
+            width: 95%;
+        }
+        to{
+            width: 84%;
+        }
     }
 </style>

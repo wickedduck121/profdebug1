@@ -23,8 +23,10 @@ export function deleteStudent(id_local) {
 }
 
 export function  login(name_loc,pass_loc) {
-    axios.post('/api/login',{},{params:{username:name_loc,password:pass_loc}});
-
+    return axios.post('/api/login',{},{params:{username:name_loc,password:pass_loc}});
+}
+export function  register(usNameLoc, passLoc, emailLoc) {
+    return axios.post('/api/user/reg',{usName:usNameLoc,pass:passLoc, email:emailLoc});
 }
 
 export function  getDoc() {
@@ -86,3 +88,8 @@ export function updateFaculty(facId, facName, abbreviation) {
 export  function getAllFaculty() {
     return axios.get('api/faculty')
 }
+export  function getReportStudent() {
+    return axios.get('api/report/student')
+
+}
+
